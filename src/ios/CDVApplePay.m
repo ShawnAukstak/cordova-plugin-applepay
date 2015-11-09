@@ -72,26 +72,15 @@
     return;
   }
   
-  PKPaymentRequest *request = [Stripe
-                               paymentRequestWithMerchantIdentifier:merchantId];
   
-  // Configure your request here.
-  NSString *label = [command.arguments objectAtIndex:1];
-  NSDecimalNumber *amount = [NSDecimalNumber decimalNumberWithString:[command.arguments objectAtIndex:0]];
-  request.paymentSummaryItems = @[
-                                  [PKPaymentSummaryItem summaryItemWithLabel:label
-                                                                      amount:amount]
-                                  ];
-  
-  NSString *cur = [command.arguments objectAtIndex:2];
-  request.currencyCode = cur;
+  PKPaymentRequest *paymentRequest = [self parsePaymentRequestForStripeToken:command];
   
   callbackId = command.callbackId;
   
-  if ([Stripe canSubmitPaymentRequest:request]) {
+  if ([Stripe canSubmitPaymentRequest:paymentRequest]) {
     PKPaymentAuthorizationViewController *paymentController;
     paymentController = [[PKPaymentAuthorizationViewController alloc]
-                         initWithPaymentRequest:request];
+                         initWithPaymentRequest:paymentRequest];
     paymentController.delegate = self;
     [self.viewController presentViewController:paymentController animated:YES completion:nil];
   } else {
@@ -101,6 +90,31 @@
   }
   
 }
+
+- (PKPaymentRequest *)parsePaymentRequestForStripeToken:(CDVInvokedUrlCommand*)command {
+
+  PKPaymentRequest *paymentRequest = [Stripe paymentRequestWithMerchantIdentifier:merchantId];
+
+  NSString *cur = [command.arguments objectAtIndex:1];
+  paymentRequest.currencyCode = cur;
+
+  NSArray *items = [command.arguments objectAtIndex:0];
+  NSMutableArray *paymentSummaryItems = [[NSMutableArray alloc] init];
+
+  for (NSDictionary *item in items) {
+
+    NSString* label = [item valueForKey:@"label"];
+    NSDecimalNumber *amount = [NSDecimalNumber decimalNumberWithDecimal:[[item valueForKey:@"amount"] decimalValue]];
+    PKPaymentSummaryItem * summaryItem = [PKPaymentSummaryItem summaryItemWithLabel: label
+                                                                             amount:amount];
+    [paymentSummaryItems addObject:summaryItem];
+  }
+
+  paymentRequest.paymentSummaryItems = paymentSummaryItems;
+
+  return paymentRequest;
+}
+
 
 - (void)paymentAuthorizationViewController:(PKPaymentAuthorizationViewController *)controller
                        didAuthorizePayment:(PKPayment *)payment
