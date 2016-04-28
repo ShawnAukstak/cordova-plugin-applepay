@@ -9,14 +9,11 @@
 
 @implementation CDVApplePay
 
-- (CDVPlugin*)initWithWebView:(UIWebView*)theWebView
-{
+- (void) pluginInitialize {
+  NSLog(@"Initialize Apple Pay Plugin");
   NSString * StripePublishableKey = [[NSBundle mainBundle] objectForInfoDictionaryKey:@"StripePublishableKey"];
   merchantId = [[NSBundle mainBundle] objectForInfoDictionaryKey:@"ApplePayMerchant"];
   [Stripe setDefaultPublishableKey:StripePublishableKey];
-  self = (CDVApplePay*)[super initWithWebView:(UIWebView*)theWebView];
-  
-  return self;
 }
 
 - (void)dealloc

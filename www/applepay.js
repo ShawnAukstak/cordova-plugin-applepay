@@ -32,4 +32,10 @@ var ApplePay = {
     
 };
 
-module.exports = ApplePay;
+if (!window.plugins.ApplePay) {
+    window.plugins.ApplePay = ApplePay;
+}
+
+if (typeof module != 'undefined' && module.exports) {
+  module.exports = ApplePay;
+}
